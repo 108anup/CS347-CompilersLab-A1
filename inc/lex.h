@@ -18,7 +18,7 @@ enum{
   DO,
   BEGIN,
   END,
-  NUM_OR_ID, /* Decimal Number or Identifier */
+  NUM, ID /* Decimal Number or Identifier */
 };
 
 extern char *yytext;		/* in lex.c			*/

@@ -1,3 +1,7 @@
-a*c;
-a * b + c * d + 5 + e;
-a > b = c + d * e < f;
+a:=b >c;
+a := a = b + c * 34d + 5 + e;
+if a = b then d := e;
+while a = b do begin
+d:=e;
+e:=f;
+end;

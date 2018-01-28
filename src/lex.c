@@ -66,7 +66,6 @@ int lex(void){
         if(!isalnum(*current)){
           if(*current == ':' && *(current+1) == '='){
             yyleng = 2;
-            yytext = current;
             return ASSIGN;
           }
           else
@@ -77,19 +76,31 @@ int lex(void){
             ++current;
           yyleng = current - yytext;
                
-          if(strncmp (current, "if", 2) == 0)
+          if(strncmp (yytext, "if", 2) == 0)
             return IF;
-          else if(strncmp(current, "then", 4) == 0)
+          else if(strncmp(yytext, "then", 4) == 0)
             return THEN;
-          else if(strncmp(current, "while", 5) == 0)
+          else if(strncmp(yytext, "while", 5) == 0)
             return WHILE;
-          else if(strncmp(current, "do", 2) == 0)
+          else if(strncmp(yytext, "do", 2) == 0)
             return DO;
-          else if(strncmp(current, "begin", 5) == 0)
+          else if(strncmp(yytext, "begin", 5) == 0)
             return BEGIN;
-          else if(strncmp(current, "END", 3) == 0)
+          else if(strncmp(yytext, "end", 3) == 0)
             return END;
-          return NUM_OR_ID;
+
+          if(isalpha(*yytext) || *yytext == '_')
+            return ID;
+          else{
+            for(int i = 1; i<yyleng; i++){
+              if(isalpha(*(yytext+i))){
+                fprintf(stderr, "Invalid integer constant <%.*s>",
+                        yyleng, yytext);
+                return -2;
+              }
+            }
+            return NUM;
+          }
         }
         break;
       }
