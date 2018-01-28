@@ -1,7 +1,0 @@
-./src/main.c
-./src/lex.c
-./src/code_gen.c
-./src/name.c
-./inc/lex.h
-./inc/code_gen.h
-./inc/name.h
