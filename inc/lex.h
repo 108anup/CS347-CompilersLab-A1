@@ -9,6 +9,15 @@ enum{
   DIV,
   LP,/*(*/
   RP,/*)*/
+  EQUAL, /*=*/
+  LT, GT, /* < > */
+  ASSIGN, /* := */
+  IF,
+  THEN,
+  WHILE,
+  DO,
+  BEGIN,
+  END,
   NUM_OR_ID, /* Decimal Number or Identifier */
 };
 

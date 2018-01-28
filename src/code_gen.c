@@ -3,21 +3,36 @@
 #include "lex.h"
 
 #include <stdio.h>
+#include <stdbool.h>
 
-static char    *factor     ( void );
-static char    *term       ( void );
-static char    *expression ( void );
+static char *factor(void);
+static char *term(void);
+static char *expression(void);
+static char *condition(void);
+
+/*
+  Precedence:
+  * /
+  + -
+  > < =
+
+  Left to right associative
+*/
 
 void statements()
 {
-  /*  statements -> expression SEMI  |  expression SEMI statements  */
+  /*  statements -> expression SEMI  |  expression SEMI statements | 
+      epsilon  */
 
-  char *tempvar;
+  char *tempvar = NULL;
 
   while( !match(EOI) )
   {
     tempvar = expression();
 
+    if (tempvar == NULL)
+      break;
+    
     if( match( SEMI ) )
       advance();
     else
@@ -27,43 +42,106 @@ void statements()
   }
 }
 
-char    *expression()
+char *expression()
 {
-  /* expression -> term expression'
-   * expression' -> PLUS term expression' |  epsilon
+  /* expression -> condition expression'
+   * expression' -> LT / GT / EQUAL condition expression' |  epsilon
    */
 
+  int op;
+  int to_match[] = {LT, GT, EQUAL};
+  char *symbols[] = {"<", ">", "=="};
+  int num_to_match = sizeof(to_match)/sizeof(int);
+  char  *tempvar, *tempvar2;
+
+  tempvar = condition();
+  while(true)
+  {
+    op = -1;
+    for(int i = 0; i<num_to_match; i++){
+      if(match(to_match[i])){
+        op = i;
+        break;
+      }
+    }
+    if(op == -1)
+      break;
+    
+    advance();
+    tempvar2 = condition();
+    printf("    %s = %s %s %s\n", tempvar, tempvar, symbols[op], tempvar2);
+    freename( tempvar2 );
+  }
+  return tempvar;
+}
+
+char *condition()
+{
+  /* condition -> term condition'
+   * condition' -> PLUS / MINUS term condition' |  epsilon
+   */
+
+  int op;
+  int to_match[] = {PLUS, MINUS};
+  char *symbols[] = {"+", "-"};
+  int num_to_match = sizeof(to_match)/sizeof(int);
   char  *tempvar, *tempvar2;
 
   tempvar = term();
-  while( match( PLUS ) )
+  while(true)
   {
+    op = -1;
+    for(int i = 0; i<num_to_match; i++){
+      if(match(to_match[i])){
+        op = i;
+        break;
+      }
+    }
+    if(op == -1)
+      break;
+    
     advance();
     tempvar2 = term();
-    printf("    %s += %s\n", tempvar, tempvar2 );
+    printf("    %s = %s %s %s\n", tempvar, tempvar, symbols[op], tempvar2);
     freename( tempvar2 );
   }
-
   return tempvar;
 }
 
-char    *term()
+char *term()
 {
-  char  *tempvar, *tempvar2 ;
+  /* term -> factor term'
+   * term' -> TIMES / DIV factor term' |  epsilon
+   */
+
+  int op;
+  int to_match[] = {TIMES, DIV};
+  char *symbols[] = {"*", "/"};
+  int num_to_match = sizeof(to_match)/sizeof(int);
+  char  *tempvar, *tempvar2;
 
   tempvar = factor();
-  while( match( TIMES ) )
+  while(true)
   {
+    op = -1;
+    for(int i = 0; i<num_to_match; i++){
+      if(match(to_match[i])){
+        op = i;
+        break;
+      }
+    }
+    if(op == -1)
+      break;
+    
     advance();
     tempvar2 = factor();
-    printf("    %s *= %s\n", tempvar, tempvar2 );
-    freename( tempvar2 );
+    printf("    %s = %s %s %s\n", tempvar, tempvar, symbols[op], tempvar2);
+    freename(tempvar2);
   }
-
   return tempvar;
 }
 
-char    *factor()
+char *factor()
 {
   char *tempvar;
 
