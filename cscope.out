@@ -1,0 +1,712 @@
+cscope 15 $HOME/Yandex.Disk/IITG/Academics/Compilers lab/CS347-Assignment-1 -q 0000000047 0000003360
+	@inc/code_gen.h
+
+1 #iâdeà
+CODE_GEN_H
+
+
+2 
+	#CODE_GEN_H
+
+
+	)
+
+3 
+¡©em’ts
+();
+
+	@inc/lex.h
+
+1 #iâdeà
+LEX_H
+
+
+2 
+	#LEX_H
+
+
+	)
+
+4 
+	mEOI
+,
+
+5 
+	mSEMI
+,
+
+6 
+	mPLUS
+,
+
+7 
+	mTIMES
+,
+
+8 
+	mMINUS
+,
+
+9 
+	mDIV
+,
+
+10 
+	mLP
+,
+
+11 
+	mRP
+,
+
+12 
+	mNUM_OR_ID
+,
+
+15 *
+yy‹xt
+;
+
+16 
+yyËng
+;
+
+17 
+yylš’o
+;
+
+19 
+m©ch
+(
+tok’
+);
+
+20 
+advªû
+();
+
+	@inc/name.h
+
+1 #iâdeà
+NAME_H
+
+
+2 
+	#NAME_H
+
+
+	)
+
+3 *
+ÃwÇme
+();
+
+4 
+ä“Çme
+(*);
+
+	@src/code_gen.c
+
+1 
+	~"code_g’.h
+"
+
+2 
+	~"Çme.h
+"
+
+3 
+	~"Ëx.h
+"
+
+5 
+	~<¡dio.h
+>
+
+7 *
+çùÜ
+ ( );
+
+8 *
+‹rm
+ ( );
+
+9 *
+ex´essiÚ
+ ( );
+
+11 
+	$¡©em’ts
+()
+
+15 *
+‹mpv¬
+;
+
+17  !
+	`m©ch
+(
+EOI
+) )
+
+19 
+‹mpv¬
+ = 
+	`ex´essiÚ
+();
+
+21 ifÐ
+	`m©ch
+Ð
+SEMI
+ ) )
+
+22 
+	`advªû
+();
+
+24 
+	`årštf
+Ð
+¡d”r
+, "%d: In£¹šg missšg semicÞÚ\n", 
+yylš’o
+ );
+
+26 
+	`ä“Çme
+Ð
+‹mpv¬
+ );
+
+28 
+	}
+}
+
+30 *
+	$ex´essiÚ
+()
+
+36 *
+‹mpv¬
+, *
+‹mpv¬2
+;
+
+38 
+‹mpv¬
+ = 
+	`‹rm
+();
+
+39  
+	`m©ch
+Ð
+PLUS
+ ) )
+
+41 
+	`advªû
+();
+
+42 
+‹mpv¬2
+ = 
+	`‹rm
+();
+
+43 
+	`´štf
+(" % +ð%s\n", 
+‹mpv¬
+, 
+‹mpv¬2
+ );
+
+44 
+	`ä“Çme
+Ð
+‹mpv¬2
+ );
+
+47  
+‹mpv¬
+;
+
+48 
+	}
+}
+
+50 *
+	$‹rm
+()
+
+52 *
+‹mpv¬
+, *
+‹mpv¬2
+ ;
+
+54 
+‹mpv¬
+ = 
+	`çùÜ
+();
+
+55  
+	`m©ch
+Ð
+TIMES
+ ) )
+
+57 
+	`advªû
+();
+
+58 
+‹mpv¬2
+ = 
+	`çùÜ
+();
+
+59 
+	`´štf
+(" % *ð%s\n", 
+‹mpv¬
+, 
+‹mpv¬2
+ );
+
+60 
+	`ä“Çme
+Ð
+‹mpv¬2
+ );
+
+63  
+‹mpv¬
+;
+
+64 
+	}
+}
+
+66 *
+	$çùÜ
+()
+
+68 *
+‹mpv¬
+;
+
+70 ifÐ
+	`m©ch
+(
+NUM_OR_ID
+) )
+
+81 
+	`´štf
+(" % ð%.*s\n", 
+‹mpv¬
+ = 
+	`ÃwÇme
+(), 
+yyËng
+, 
+yy‹xt
+ );
+
+82 
+	`advªû
+();
+
+84 ifÐ
+	`m©ch
+(
+LP
+) )
+
+86 
+	`advªû
+();
+
+87 
+‹mpv¬
+ = 
+	`ex´essiÚ
+();
+
+88 ifÐ
+	`m©ch
+(
+RP
+) )
+
+89 
+	`advªû
+();
+
+91 
+	`årštf
+(
+¡d”r
+, "%d: Mism©ched…¬’thesis\n", 
+yylš’o
+ );
+
+94 
+	`årštf
+Ð
+¡d”r
+, "%d: Numb” o¸id’tif›¸ex³ùed\n", 
+yylš’o
+ );
+
+96  
+‹mpv¬
+;
+
+97 
+	}
+}
+
+	@src/lex.c
+
+1 
+	~"Ëx.h
+"
+
+2 
+	~<¡dio.h
+>
+
+3 
+	~<ùy³.h
+>
+
+5 * 
+	gyy‹xt
+ = "";
+
+6 
+	gyyËng
+ = 0;
+
+7 
+	gyylš’o
+ = 0;
+
+9 
+Ëx
+();
+
+11 
+	$Ëx
+(){
+
+13 
+šput_bufãr
+[1024];
+
+14 *
+cu¼’t
+;
+
+16 
+cu¼’t
+ = 
+yy‹xt
+ + 
+yyËng
+;
+
+20 !*
+cu¼’t
+ ){
+
+26 
+cu¼’t
+ = 
+šput_bufãr
+;
+
+27 if(
+	`sÿnf
+(" %[^\n]", 
+šput_bufãr
+) < 1){
+
+28 *
+cu¼’t
+ = '\0' ;
+
+29  
+EOI
+;
+
+31 ++
+yylš’o
+;
+
+32 
+	`is¥aû
+(*
+cu¼’t
+))
+
+33 ++
+cu¼’t
+;
+
+35 ; *
+cu¼’t
+; ++current){
+
+37 
+yy‹xt
+ = 
+cu¼’t
+;
+
+38 
+yyËng
+ = 1;
+
+39  *
+cu¼’t
+ ){
+
+41  
+SEMI
+;
+
+43  
+PLUS
+;
+
+45  
+MINUS
+;
+
+47  
+TIMES
+;
+
+49  
+DIV
+;
+
+51  
+LP
+;
+
+53  
+RP
+;
+
+59 if(!
+	`i§Êum
+(*
+cu¼’t
+))
+
+60 
+	`årštf
+(
+¡d”r
+, "NÙ‡Íhªum”iø<%c>\n", *
+cu¼’t
+);
+
+62 
+	`i§Êum
+(*
+cu¼’t
+))
+
+63 ++
+cu¼’t
+;
+
+64 
+yyËng
+ = 
+cu¼’t
+ - 
+yy‹xt
+;
+
+65  
+NUM_OR_ID
+;
+
+71 
+	}
+}
+
+74 
+	gLookah—d
+ = -1;
+
+76 
+	$m©ch
+(
+tok’
+){
+
+80 if(
+Lookah—d
+ == -1)
+
+81 
+Lookah—d
+ = 
+	`Ëx
+();
+
+83  
+tok’
+ =ð
+Lookah—d
+;
+
+84 
+	}
+}
+
+86 
+	$advªû
+(){
+
+90 
+Lookah—d
+ = 
+	`Ëx
+();
+
+91 
+	}
+}
+
+	@src/main.c
+
+1 
+	~"code_g’.h
+"
+
+3 
+	$maš
+ ()
+
+5 
+	`¡©em’ts
+ ();
+
+7 
+	}
+}
+
+	@src/name.c
+
+1 
+	~"Çme.h
+"
+
+2 
+	~"Ëx.h
+"
+
+4 
+	~<¡dio.h
+>
+
+5 
+	~<¡dlib.h
+>
+
+7 *
+	gNames
+[] = { "t0", "t1", "t2", "t3", "t4", "t5", "t6", "t7" };
+
+8 **
+	gNam•
+ = 
+Names
+;
+
+10 *
+	$ÃwÇme
+()
+
+12 ifÐ
+Nam•
+ >ð&
+Names
+[ (Names)/(*Names) ] )
+
+14 
+	`årštf
+Ð
+¡d”r
+, "%d: Ex´essiÚoØcom¶ex\n", 
+yylš’o
+ );
+
+15 
+	`ex™
+( 1 );
+
+18 Ð*
+Nam•
+++ );
+
+19 
+	}
+}
+
+21 
+	$ä“Çme
+(*
+s
+)
+
+23 ifÐ
+Nam•
+ > 
+Names
+ )
+
+24 *--
+Nam•
+ = 
+s
+;
+
+26 
+	`årštf
+(
+¡d”r
+, "%d: (Internalƒrror) Name stack underflow\n",
+
+27 
+yylš’o
+ );
+
+28 
+	}
+}
+
+	@
+1
+.
+0
+7
+83
+inc/code_gen.h
+inc/lex.h
+inc/name.h
+src/code_gen.c
+src/lex.c
+src/main.c
+src/name.c

@@ -1,0 +1,42 @@
+
+src/main.c,15
+int main 3,23
+
+src/lex.c,144
+char* yytext 5,56
+int yyleng 6,111
+int yylineno 7,151
+int lex(11,219
+static int Lookahead 74,1737
+int match(76,1788
+void advance(86,1984
+
+src/code_gen.c,122
+void statements(11,190
+char    *expression(expression30,511
+char    *term(term50,850
+char    *factor(factor66,1093
+
+src/name.c,102
+char *Names[Names7,76
+char **Namep Namep8,147
+char *newname(newname10,177
+void freename(21,402
+
+inc/lex.h,145
+#define LEX_H2,14
+  EOI,4,34
+  SEMI,5,61
+  PLUS,6,74
+  TIMES,7,87
+  MINUS,8,101
+  DIV,9,110
+  LP,10,117
+  RP,11,128
+  NUM_OR_ID,12,139
+
+inc/code_gen.h,24
+#define CODE_GEN_H2,19
+
+inc/name.h,20
+#define NAME_H2,15
