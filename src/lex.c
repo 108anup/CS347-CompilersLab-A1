@@ -27,6 +27,7 @@ int lex(void){
       current = input_buffer;
       if(scanf(" %[^\n]", input_buffer) < 1){
         *current = '\0' ;
+        ++yylineno;
         return EOI;
       }
       ++yylineno;

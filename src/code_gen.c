@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#include <string.h>
 
 static char *factor(void);
 static char *term(void);
@@ -22,9 +23,8 @@ static void statement_list(void);
 */
 
 static void skip_statement(void){
-  while(!match(SEMI))
+  while(!match(SEMI) && !match(EOI))
     advance();
-  advance();
 }
 
 void statements()
@@ -41,7 +41,7 @@ void statements()
     if(match(SEMI))
       advance();
     else
-      fprintf( stderr, "%d: Inserting missing semicolon\n", yylineno );
+      fprintf( stderr, "%d: Inserting missing semicolon\n", yylineno-1 );
   }
 }
 
@@ -82,10 +82,10 @@ bool statement(){
   */
 
   char *tempvar, *tempvar2;
-  int tempvarlen;
   if(match(ID)){
-    tempvar = yytext;
-    tempvarlen = yyleng;
+    char tempv[1024];
+    int tempvarlen = yyleng;
+    strncpy(tempv, yytext, yyleng);
     advance();
     if(!match(ASSIGN)){
       fprintf(stderr, "%d: Invalid assignment\n", yylineno);
@@ -94,7 +94,7 @@ bool statement(){
     else{
       advance();
       tempvar2 = expression();
-      printf("    %.*s = %s\n", tempvarlen, tempvar, tempvar2);
+      printf("    %.*s = %s\n", tempvarlen, tempv, tempvar2);
     }
   }
   else if(match(IF)){
@@ -107,8 +107,9 @@ bool statement(){
     }
     else{
       advance();
-      statement();
+      int ret = statement();
       printf("lbl: \n");
+      return ret;
     }
   }
   else if(match(WHILE)){
