@@ -1,0 +1,6 @@
+a := b >
+     e + f >
+     d + e >
+     a + b;
+if a = b then d := c;
+d := e + f;

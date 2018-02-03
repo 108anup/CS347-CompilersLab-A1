@@ -27,4 +27,5 @@ extern int yylineno;
 
 int match(int token);
 void advance(void);
+void goback(void);
 #endif

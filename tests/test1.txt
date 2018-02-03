@@ -1,0 +1,7 @@
+a := b+c;
+b := c-d;
+d := e*f;
+f := g/h;
+h := g>l;
+l := m<n;
+z := x=y;

@@ -1,0 +1,8 @@
+while a := b do
+  begin
+    d:=e;
+    if a = b then d = e;
+    f:=e
+  end;
+if a = b then d = e;
+f:=e

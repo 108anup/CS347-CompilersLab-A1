@@ -1,10 +1,15 @@
 #include "code_gen.h"
 #include "name.h"
 #include "lex.h"
+#include "main.h"
 
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+#include <stdarg.h>
+
+#define MAXFIRST 16
+#define SYNCH	 SEMI
 
 static char *factor(void);
 static char *term(void);
@@ -12,6 +17,10 @@ static char *expression(void);
 static char *condition(void);
 static bool statement(void);
 static void statement_list(void);
+static int legal_lookahead(int, ...);
+
+static int lbl_count = 0;
+static int loop_count = 0;
 
 /*
   Precedence:
@@ -23,8 +32,24 @@ static void statement_list(void);
 */
 
 static void skip_statement(void){
-  while(!match(SEMI) && !match(EOI))
-    advance();
+  //while(!legal_lookahead(SEMI, EOI, WHILE, IF, BEGIN)){
+  while(!match(SEMI) && !match(EOI) && !match(WHILE)
+        && !match(IF) && !match(BEGIN)){
+    if(match(ID)){
+      advance();
+      if(match(SEMI))
+        break;
+      if(!match(ASSIGN)){
+        advance();
+      }
+      else{
+        goback();
+        break;
+      }
+    }
+    else
+      advance();
+  }
 }
 
 void statements()
@@ -37,12 +62,13 @@ void statements()
   {
     if(!statement())
       skip_statement();
-    
+
     if(match(SEMI))
       advance();
-    else
-      fprintf( stderr, "%d: Inserting missing semicolon\n", yylineno-1 );
-  }
+    else 
+      fprintf( stderr, "%d: Inserting expected missing ';' on or before"
+               " '%.*s'\n", yylineno, yyleng, yytext);
+ }
 }
 
 void statement_list()
@@ -58,13 +84,14 @@ void statement_list()
       break;
     }
     if(!match(END)){
-      if (!statement())
+      if(!statement())
         skip_statement();
       
       if(match(SEMI))
         advance();
       else
-        fprintf( stderr, "%d: Inserting missing semicolon\n", yylineno );
+        fprintf( stderr, "%d: Inserting expected missing ';' on or before"
+                 " '%.*s'\n", yylineno, yyleng, yytext);
     }
     else{
       advance();
@@ -94,37 +121,55 @@ bool statement(){
     else{
       advance();
       tempvar2 = expression();
+      fprintf(fp, "    mov %.*s, %s\n", tempvarlen, tempv, tempvar2);
       printf("    %.*s = %s\n", tempvarlen, tempv, tempvar2);
+      freename(tempvar2);
     }
   }
   else if(match(IF)){
     advance();
+    printf("\n");
     tempvar = expression();
-    printf("jump nzero %s lbl\n", tempvar);
+    int lbl_num_used = lbl_count++;
+    fprintf(fp, "    cmp %s, $0\n", tempvar);
+    fprintf(fp, "    jz _LBL%d\n\n", lbl_num_used);
+    printf("    if not %s goto _LBL%d\n\n", tempvar, lbl_num_used);
+    freename(tempvar);
     if(!match(THEN)){
-      fprintf(stderr, "%d: Invalid if statement\n", yylineno);
+      fprintf(stderr, "%d: Invalid 'if' statement "
+              "(expected 'then' before '%.*s')\n", yylineno, yyleng, yytext);
       return false;
     }
     else{
       advance();
       int ret = statement();
-      printf("lbl: \n");
+      printf("\n_LBL%d: \n", lbl_num_used);
+      fprintf(fp, "\n_LBL%d: \n", lbl_num_used);
       return ret;
     }
   }
   else if(match(WHILE)){
     advance();
-    printf ("loop:\n");
+    int loop_num_used = loop_count++;
+    fprintf (fp, "_LOOP%d:\n", loop_num_used);
+    printf ("_LOOP%d:\n", loop_num_used);
     tempvar = expression();
-    printf("jump nzero %s lbl\n", tempvar);
+    int lbl_num_used = lbl_count++;
+    fprintf(fp, "    cmp %s, $0\n", tempvar);
+    fprintf(fp, "    jz _LBL%d\n\n", lbl_num_used);
+    printf("    if not %s goto _LBL%d\n\n", tempvar, lbl_num_used);
+    freename(tempvar);
     if(!match(DO)){
-      fprintf(stderr, "%d: Invalid while statement\n", yylineno);
+      fprintf(stderr, "%d: Invalid 'while' statement "
+              "(expected 'do' before '%.*s')\n", yylineno, yyleng, yytext);
       return false;
     }
     else{
       advance();
       statement();
-      printf("jmp loop\n lbl: \n");
+      fprintf(fp, "    jmp _LOOP%d\n\n_LBL%d: \n",
+              loop_num_used, lbl_num_used);
+      printf("    goto _LOOP%d\n\n_LBL%d: \n", loop_num_used, lbl_num_used);
     }
   }
   else if(match(BEGIN)){
@@ -165,6 +210,19 @@ char *expression()
     advance();
     tempvar2 = condition();
     printf("    %s = %s %s %s\n", tempvar, tempvar, symbols[op], tempvar2);
+    fprintf(fp, "    cmp %s, %s\n", tempvar, tempvar2);
+    if(op == 1){
+      fprintf(fp, "    setg %s\n", tempvar);
+    }
+    else if(op == 0){
+      fprintf(fp, "    setl %s\n", tempvar);
+    }
+    else if(op == 2){
+      fprintf(fp, "    sete %s\n", tempvar);
+    }
+    else{
+      fprintf(fp, "%d", op);
+    }
     freename( tempvar2 );
   }
   return tempvar;
@@ -198,6 +256,12 @@ char *condition()
     advance();
     tempvar2 = term();
     printf("    %s = %s %s %s\n", tempvar, tempvar, symbols[op], tempvar2);
+    if (op == 0){
+      fprintf(fp, "    add	%s, %s\n", tempvar, tempvar2);
+    }
+    else if (op == 1){
+      fprintf(fp, "    sub	%s, %s\n", tempvar, tempvar2);
+    }
     freename( tempvar2 );
   }
   return tempvar;
@@ -231,6 +295,12 @@ char *term()
     advance();
     tempvar2 = factor();
     printf("    %s = %s %s %s\n", tempvar, tempvar, symbols[op], tempvar2);
+    if (op == 0){
+      fprintf(fp, "    imul %s, %s\n", tempvar, tempvar2);
+    }
+    else if (op == 1){
+      fprintf(fp, "    idiv %s, %s\n", tempvar, tempvar2);
+    }
     freename(tempvar2);
   }
   return tempvar;
@@ -252,6 +322,7 @@ char *factor()
      */
 
     printf("    %s = %.*s\n", tempvar = newname(), yyleng, yytext );
+    fprintf(fp, "    mov %s, %.*s\n", tempvar, yyleng, yytext);
     advance();
   }
   else if( match(LP) )
@@ -264,10 +335,68 @@ char *factor()
       fprintf(stderr, "%d: Mismatched parenthesis\n", yylineno );
   }
   else{
-    fprintf( stderr, "%d: Number or identifier expected\n", yylineno );
-    printf("    %s = %.*s\n", tempvar = newname(), yyleng, yytext );
-    advance();
+    fprintf( stderr, "%d: Number or identifier expected"
+             " on or before '%.*s'\n", yylineno, yyleng, yytext);
+    printf("    %s = %s\n", tempvar = newname(), "EXPECTED ID");
+    fprintf(fp, "    mov %s, %s\n", tempvar, "EXPECTED ID");
+    if(match(-2))
+      advance();
   }
 
   return tempvar;
+}
+
+int	legal_lookahead(int first_arg, ...)
+{
+  /* Simple error detection and recovery. Arguments are a 0-terminated list of
+   * those tokens that can legitimately come next in the input. If the list is
+   * empty, the end of file must come next. Print an error message if
+   * necessary. Error recovery is performed by discarding all input symbols
+   * until one that's in the input list is found
+   *
+   * Return true if there's no error or if we recovered from the error,
+   * false if we can't recover.
+   */
+
+  va_list  	args;
+  int		tok;
+  int		lookaheads[MAXFIRST], *p = lookaheads, *current;
+  int		error_printed = 0;
+  int		rval	      = 0;
+
+  va_start( args, first_arg );
+
+  if( !first_arg )
+  {
+    if( match(EOI) )
+	    rval = 1;
+  }
+  else
+  {
+    *p++ = first_arg;
+    while( (tok = va_arg(args, int)) && p < &lookaheads[MAXFIRST] )
+	    *p++ = tok;
+
+    while( !match( SYNCH ) )
+    {
+	    for( current = lookaheads; current < p ; ++current )
+        if( match( *current ) )
+        {
+          rval = 1;
+          goto exit;
+        }
+      
+	    if( !error_printed )
+	    {
+        fprintf( stderr, "Line %d: Syntax error\n", yylineno );
+        error_printed = 1;
+	    }
+
+	    advance();
+    }
+  }
+
+exit:
+  va_end( args );
+  return rval;
 }

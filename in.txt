@@ -1,7 +1,0 @@
-a:=b >c;
-a := a = b + c * d + 5 + e;
-if a = b then d := e;
-while a = b do begin
-d:=e;
-e:=f;
-end;
