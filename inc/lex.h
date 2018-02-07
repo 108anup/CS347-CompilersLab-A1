@@ -7,6 +7,7 @@ enum{
   TIMES,/***/
   MINUS,
   DIV,
+  MOD,
   LP,/*(*/
   RP,/*)*/
   EQUAL, /*=*/

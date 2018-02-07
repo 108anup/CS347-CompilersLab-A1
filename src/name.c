@@ -5,7 +5,9 @@
 #include <stdlib.h>
 
 char *Names[] = { "t0", "t1", "t2", "t3", "t4", "t5", "t6", "t7" };   
-char **Namep  = Names;   
+char **Namep  = Names;
+
+char *Regs[] = {"%r8d", "%r9d", "%r10d", "%r11d", "%r12d", "%r13d", "%r14d", "%r15d"};
    
 char *newname(void)   
 {   
@@ -26,3 +28,8 @@ void freename(char *s)
     fprintf(stderr, "%d: (Internal error) Name stack underflow\n",   
             yylineno );   
 }   
+
+char *reg_name(char *s){
+  int idx = ((void *)s - (void *)Names[0])/2;
+  return Regs[idx];
+}

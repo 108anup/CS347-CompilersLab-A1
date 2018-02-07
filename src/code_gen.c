@@ -121,7 +121,7 @@ bool statement(){
     else{
       advance();
       tempvar2 = expression();
-      fprintf(fp, "    mov %.*s, %s\n", tempvarlen, tempv, tempvar2);
+      fprintf(fp, "    mov %.*s, %s\n", tempvarlen, tempv, reg_name(tempvar2));
       printf("    %.*s = %s\n", tempvarlen, tempv, tempvar2);
       freename(tempvar2);
     }
@@ -131,7 +131,7 @@ bool statement(){
     printf("\n");
     tempvar = expression();
     int lbl_num_used = lbl_count++;
-    fprintf(fp, "    cmp %s, $0\n", tempvar);
+    fprintf(fp, "    cmp %s, $0\n", reg_name(tempvar));
     fprintf(fp, "    jz _LBL%d\n\n", lbl_num_used);
     printf("    if not %s goto _LBL%d\n\n", tempvar, lbl_num_used);
     freename(tempvar);
@@ -155,7 +155,7 @@ bool statement(){
     printf ("_LOOP%d:\n", loop_num_used);
     tempvar = expression();
     int lbl_num_used = lbl_count++;
-    fprintf(fp, "    cmp %s, $0\n", tempvar);
+    fprintf(fp, "    cmp %s, $0\n", reg_name(tempvar));
     fprintf(fp, "    jz _LBL%d\n\n", lbl_num_used);
     printf("    if not %s goto _LBL%d\n\n", tempvar, lbl_num_used);
     freename(tempvar);
@@ -210,15 +210,15 @@ char *expression()
     advance();
     tempvar2 = condition();
     printf("    %s = %s %s %s\n", tempvar, tempvar, symbols[op], tempvar2);
-    fprintf(fp, "    cmp %s, %s\n", tempvar, tempvar2);
+    fprintf(fp, "    cmp %s, %s\n", reg_name(tempvar), reg_name(tempvar2));
     if(op == 1){
-      fprintf(fp, "    setg %s\n", tempvar);
+      fprintf(fp, "    setg %s\n", reg_name(tempvar));
     }
     else if(op == 0){
-      fprintf(fp, "    setl %s\n", tempvar);
+      fprintf(fp, "    setl %s\n", reg_name(tempvar));
     }
     else if(op == 2){
-      fprintf(fp, "    sete %s\n", tempvar);
+      fprintf(fp, "    sete %s\n", reg_name(tempvar));
     }
     else{
       fprintf(fp, "%d", op);
@@ -257,10 +257,10 @@ char *condition()
     tempvar2 = term();
     printf("    %s = %s %s %s\n", tempvar, tempvar, symbols[op], tempvar2);
     if (op == 0){
-      fprintf(fp, "    add	%s, %s\n", tempvar, tempvar2);
+      fprintf(fp, "    add	%s, %s\n", reg_name(tempvar), reg_name(tempvar2));
     }
     else if (op == 1){
-      fprintf(fp, "    sub	%s, %s\n", tempvar, tempvar2);
+      fprintf(fp, "    sub	%s, %s\n", reg_name(tempvar), reg_name(tempvar2));
     }
     freename( tempvar2 );
   }
@@ -270,12 +270,12 @@ char *condition()
 char *term()
 {
   /* term -> factor term'
-   * term' -> TIMES / DIV factor term' |  epsilon
+   * term' -> TIMES / DIV / MOD factor term' |  epsilon
    */
 
   int op;
-  int to_match[] = {TIMES, DIV};
-  char *symbols[] = {"*", "/"};
+  int to_match[] = {TIMES, DIV, MOD};
+  char *symbols[] = {"*", "/", "%"};
   int num_to_match = sizeof(to_match)/sizeof(int);
   char  *tempvar, *tempvar2;
 
@@ -296,10 +296,19 @@ char *term()
     tempvar2 = factor();
     printf("    %s = %s %s %s\n", tempvar, tempvar, symbols[op], tempvar2);
     if (op == 0){
-      fprintf(fp, "    imul %s, %s\n", tempvar, tempvar2);
+      fprintf(fp, "    imul %s, %s\n", reg_name(tempvar), reg_name(tempvar2));
     }
     else if (op == 1){
-      fprintf(fp, "    idiv %s, %s\n", tempvar, tempvar2);
+      fprintf(fp, "    xor %%edx, %%edx\n");
+      fprintf(fp, "    mov %%eax, %s\n", reg_name(tempvar));
+      fprintf(fp, "    idiv %s\n", reg_name(tempvar2));
+      fprintf(fp, "    mov %s, %%eax\n", reg_name(tempvar));
+    }
+    else if (op == 2){
+      fprintf(fp, "    xor %%edx, %%edx\n");
+      fprintf(fp, "    mov %%eax, %s\n", reg_name(tempvar));
+      fprintf(fp, "    idiv %s\n", reg_name(tempvar2));
+      fprintf(fp, "    mov %s, %%edx\n", reg_name(tempvar));
     }
     freename(tempvar2);
   }
@@ -322,7 +331,7 @@ char *factor()
      */
 
     printf("    %s = %.*s\n", tempvar = newname(), yyleng, yytext );
-    fprintf(fp, "    mov %s, %.*s\n", tempvar, yyleng, yytext);
+    fprintf(fp, "    mov %s, %.*s\n", reg_name(tempvar), yyleng, yytext);
     advance();
   }
   else if( match(LP) )
@@ -338,7 +347,7 @@ char *factor()
     fprintf( stderr, "%d: Number or identifier expected"
              " on or before '%.*s'\n", yylineno, yyleng, yytext);
     printf("    %s = %s\n", tempvar = newname(), "EXPECTED ID");
-    fprintf(fp, "    mov %s, %s\n", tempvar, "EXPECTED ID");
+    fprintf(fp, "    mov %s, %s\n", reg_name(tempvar), "EXPECTED ID");
     if(match(-2))
       advance();
   }

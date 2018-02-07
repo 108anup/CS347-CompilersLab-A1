@@ -1,37 +1,46 @@
-    mov t0, a
-    mov t1, b
-    cmp t0, t1
-    sete t0
-    cmp t0, $0
+    .global _start
+    .section
+    .text
+
+_start:
+    mov %r8d, a
+    mov %r9d, b
+    cmp %r8d, %r9d
+    sete %r8d
+    cmp %r8d, $0
     jz _LBL0
 
-    mov t0, a
-    mov t1, b
-    cmp t0, t1
-    sete t0
-    cmp t0, $0
+    mov %r8d, a
+    mov %r9d, b
+    cmp %r8d, %r9d
+    sete %r8d
+    cmp %r8d, $0
     jz _LBL1
 
 _LOOP0:
-    mov t0, a
-    mov t1, b
-    cmp t0, t1
-    sete t0
-    cmp t0, $0
+    mov %r8d, a
+    mov %r9d, b
+    cmp %r8d, %r9d
+    sete %r8d
+    cmp %r8d, $0
     jz _LBL2
 
-    mov t0, d
-    mov c, t0
+    mov %r8d, d
+    mov c, %r8d
     jmp _LOOP0
 
 _LBL2: 
-    mov t0, e
-    mov t1, f
-    sub	t0, t1
-    mov e, t0
+    mov %r8d, e
+    mov %r9d, f
+    sub	%r8d, %r9d
+    mov e, %r8d
 
 _LBL1: 
-    mov t0, n
-    mov m, t0
+    mov %r8d, n
+    mov m, %r8d
 
 _LBL0: 
+
+    mov %ebx, %eax
+    mov %eax, $1
+    int $0x80

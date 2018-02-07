@@ -54,6 +54,8 @@ int lex(void){
         return TIMES;
       case '/':
         return DIV;
+      case '%':
+        return MOD;
       case '>':
         return GT;
       case '<':
