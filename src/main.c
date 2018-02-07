@@ -15,7 +15,7 @@ void prolog(void)
 
 void epilog(void)
 {
-  fprintf(fp, "\n    mov ebx, eax\n");
+  fprintf(fp, "\n    mov ebx, 0\n");
   fprintf(fp, "    mov eax, 1\n");
   fprintf(fp, "    int 0x80\n");
 }
