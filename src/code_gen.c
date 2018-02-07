@@ -131,7 +131,7 @@ bool statement(){
     printf("\n");
     tempvar = expression();
     int lbl_num_used = lbl_count++;
-    fprintf(fp, "    cmp %s, $0\n", reg_name(tempvar));
+    fprintf(fp, "    cmp %s, 0\n", reg_name(tempvar));
     fprintf(fp, "    jz _LBL%d\n\n", lbl_num_used);
     printf("    if not %s goto _LBL%d\n\n", tempvar, lbl_num_used);
     freename(tempvar);
@@ -155,7 +155,7 @@ bool statement(){
     printf ("_LOOP%d:\n", loop_num_used);
     tempvar = expression();
     int lbl_num_used = lbl_count++;
-    fprintf(fp, "    cmp %s, $0\n", reg_name(tempvar));
+    fprintf(fp, "    cmp %s, 0\n", reg_name(tempvar));
     fprintf(fp, "    jz _LBL%d\n\n", lbl_num_used);
     printf("    if not %s goto _LBL%d\n\n", tempvar, lbl_num_used);
     freename(tempvar);
@@ -299,16 +299,16 @@ char *term()
       fprintf(fp, "    imul %s, %s\n", reg_name(tempvar), reg_name(tempvar2));
     }
     else if (op == 1){
-      fprintf(fp, "    xor %%edx, %%edx\n");
-      fprintf(fp, "    mov %%eax, %s\n", reg_name(tempvar));
+      fprintf(fp, "    xor edx, edx\n");
+      fprintf(fp, "    mov eax, %s\n", reg_name(tempvar));
       fprintf(fp, "    idiv %s\n", reg_name(tempvar2));
-      fprintf(fp, "    mov %s, %%eax\n", reg_name(tempvar));
+      fprintf(fp, "    mov %s, eax\n", reg_name(tempvar));
     }
     else if (op == 2){
-      fprintf(fp, "    xor %%edx, %%edx\n");
-      fprintf(fp, "    mov %%eax, %s\n", reg_name(tempvar));
+      fprintf(fp, "    xor edx, edx\n");
+      fprintf(fp, "    mov eax, %s\n", reg_name(tempvar));
       fprintf(fp, "    idiv %s\n", reg_name(tempvar2));
-      fprintf(fp, "    mov %s, %%edx\n", reg_name(tempvar));
+      fprintf(fp, "    mov %s, edx\n", reg_name(tempvar));
     }
     freename(tempvar2);
   }
