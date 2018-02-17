@@ -70,6 +70,7 @@ cscope:
 
 clean:
 	$(RM) -r -v $(BUILDDIR) $(OUTPUTDIR) $(DEPDIR)
+	$(RM) out.s lex.txt parse.txt
 
 cleanall: clean
 	$(RM) -v cscope.* TAGS

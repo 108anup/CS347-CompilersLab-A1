@@ -11,12 +11,12 @@
 #define MAXFIRST 16
 #define SYNCH	 SEMI
 
-static char *factor(void);
-static char *term(void);
-static char *expression(void);
-static char *condition(void);
-static bool statement(void);
-static void statement_list(void);
+static char *factor(int);
+static char *term(int);
+static char *expression(int);
+static char *condition(int);
+static bool statement(int);
+static void statement_list(int);
 static int legal_lookahead(int, ...);
 
 static int lbl_count = 0;
@@ -30,6 +30,12 @@ static int loop_count = 0;
 
   Left to right associative
 */
+
+static void print_spaces(int spaces){
+  for(int i= 0; i<spaces; i++){
+    fprintf(pfp, " ");
+  }
+}
 
 static void skip_statement(void){
   //while(!legal_lookahead(SEMI, EOI, WHILE, IF, BEGIN)){
@@ -57,10 +63,13 @@ void statements()
   /*
     statements -> statement; statements | epsilon
   */
-
+  int spaces = 0;
+  fprintf(pfp, "statement's'\n");
+  spaces = 2;
+  
   while(!match(EOI))
   {
-    if(!statement())
+    if(!statement(spaces))
       skip_statement();
 
     if(match(SEMI))
@@ -71,11 +80,14 @@ void statements()
  }
 }
 
-void statement_list()
+void statement_list(int spaces)
 {
   /*
     statement_list -> statement; statement_list | epsilon
   */
+  print_spaces(spaces);
+  fprintf(pfp, "statement_list\n");
+  spaces += 2;
 
   while(true)
   {
@@ -84,7 +96,7 @@ void statement_list()
       break;
     }
     if(!match(END)){
-      if(!statement())
+      if(!statement(spaces))
         skip_statement();
       
       if(match(SEMI))
@@ -94,42 +106,53 @@ void statement_list()
                  " '%.*s'\n", yylineno, yyleng, yytext);
     }
     else{
+      print_spaces(spaces);
+      fprintf(pfp, "end\n");
       advance();
       break;
     }
   }
 }
 
-bool statement(){
+bool statement(int spaces){
   /*
     statement -> ID ASSIGN expression  
     | if expression then statement
     | while expression do statement
     | begin statment_list end
   */
-
+  print_spaces(spaces);
+  spaces+=2;
+  fprintf(pfp, "statement\n");
+  
   char *tempvar, *tempvar2;
   if(match(ID)){
     char tempv[1024];
     int tempvarlen = yyleng;
     strncpy(tempv, yytext, yyleng);
+    print_spaces(spaces);
+    fprintf(pfp, "ID: %.*s\n", yyleng, yytext);
     advance();
     if(!match(ASSIGN)){
       fprintf(stderr, "%d: Invalid assignment\n", yylineno);
       return false;
     }
     else{
+      print_spaces(spaces);
+      fprintf(pfp, ":=\n");
       advance();
-      tempvar2 = expression();
+      tempvar2 = expression(spaces);
       fprintf(fp, "    mov %.*s, %s\n", tempvarlen, tempv, reg_name(tempvar2));
       printf("    %.*s = %s\n", tempvarlen, tempv, tempvar2);
       freename(tempvar2);
     }
   }
   else if(match(IF)){
+    print_spaces(spaces);
+    fprintf(pfp, "if\n");
     advance();
     printf("\n");
-    tempvar = expression();
+    tempvar = expression(spaces);
     int lbl_num_used = lbl_count++;
     fprintf(fp, "    cmp %s, 0\n", reg_name(tempvar));
     fprintf(fp, "    jz _LBL%d\n\n", lbl_num_used);
@@ -141,19 +164,23 @@ bool statement(){
       return false;
     }
     else{
+      print_spaces(spaces);
+      fprintf(pfp, "then\n");
       advance();
-      int ret = statement();
+      int ret = statement(spaces);
       printf("\n_LBL%d: \n", lbl_num_used);
       fprintf(fp, "\n_LBL%d: \n", lbl_num_used);
       return ret;
     }
   }
   else if(match(WHILE)){
+    print_spaces(spaces);
+    fprintf(pfp, "while\n");
     advance();
     int loop_num_used = loop_count++;
     fprintf (fp, "_LOOP%d:\n", loop_num_used);
     printf ("_LOOP%d:\n", loop_num_used);
-    tempvar = expression();
+    tempvar = expression(spaces);
     int lbl_num_used = lbl_count++;
     fprintf(fp, "    cmp %s, 0\n", reg_name(tempvar));
     fprintf(fp, "    jz _LBL%d\n\n", lbl_num_used);
@@ -165,16 +192,20 @@ bool statement(){
       return false;
     }
     else{
+      print_spaces(spaces);
+      fprintf(pfp, "do\n");
       advance();
-      statement();
+      statement(spaces);
       fprintf(fp, "    jmp _LOOP%d\n\n_LBL%d: \n",
               loop_num_used, lbl_num_used);
       printf("    goto _LOOP%d\n\n_LBL%d: \n", loop_num_used, lbl_num_used);
     }
   }
   else if(match(BEGIN)){
+    print_spaces(spaces);
+    fprintf(pfp, "begin\n");
     advance();
-    statement_list();
+    statement_list(spaces);
   }
   else{
     return false;
@@ -182,21 +213,29 @@ bool statement(){
   return true;
 }
 
-char *expression()
+char *expression(int spaces)
 {
   /* expression -> condition expression'
    * expression' -> LT / GT / EQUAL condition expression' |  epsilon
    */
 
+  print_spaces(spaces);
+  fprintf(pfp, "expression\n");
+  spaces += 2;
+  
   int op;
   int to_match[] = {LT, GT, EQUAL};
   char *symbols[] = {"<", ">", "=="};
   int num_to_match = sizeof(to_match)/sizeof(int);
   char  *tempvar, *tempvar2;
 
-  tempvar = condition();
+  tempvar = condition(spaces);
   while(true)
   {
+    print_spaces(spaces);
+    fprintf(pfp, "expression'\n");
+    spaces += 2;
+    
     op = -1;
     for(int i = 0; i<num_to_match; i++){
       if(match(to_match[i])){
@@ -206,9 +245,11 @@ char *expression()
     }
     if(op == -1)
       break;
-    
+
+    print_spaces(spaces);
+    fprintf(pfp, "%s\n", symbols[op]);
     advance();
-    tempvar2 = condition();
+    tempvar2 = condition(spaces);
     printf("    %s = %s %s %s\n", tempvar, tempvar, symbols[op], tempvar2);
     fprintf(fp, "    cmp %s, %s\n", reg_name(tempvar), reg_name(tempvar2));
     if(op == 1){
@@ -228,21 +269,29 @@ char *expression()
   return tempvar;
 }
 
-char *condition()
+char *condition(int spaces)
 {
   /* condition -> term condition'
    * condition' -> PLUS / MINUS term condition' |  epsilon
    */
 
+  print_spaces(spaces);
+  fprintf(pfp, "condition\n");
+  spaces += 2;
+  
   int op;
   int to_match[] = {PLUS, MINUS};
   char *symbols[] = {"+", "-"};
   int num_to_match = sizeof(to_match)/sizeof(int);
   char  *tempvar, *tempvar2;
 
-  tempvar = term();
+  tempvar = term(spaces);
   while(true)
   {
+    print_spaces(spaces);
+    fprintf(pfp, "condition'\n");
+    spaces += 2;
+    
     op = -1;
     for(int i = 0; i<num_to_match; i++){
       if(match(to_match[i])){
@@ -252,9 +301,12 @@ char *condition()
     }
     if(op == -1)
       break;
-    
+
+    print_spaces(spaces);
+    fprintf(pfp, "%s\n", symbols[op]);
+
     advance();
-    tempvar2 = term();
+    tempvar2 = term(spaces);
     printf("    %s = %s %s %s\n", tempvar, tempvar, symbols[op], tempvar2);
     if (op == 0){
       fprintf(fp, "    add	%s, %s\n", reg_name(tempvar), reg_name(tempvar2));
@@ -267,11 +319,15 @@ char *condition()
   return tempvar;
 }
 
-char *term()
+char *term(int spaces)
 {
   /* term -> factor term'
    * term' -> TIMES / DIV / MOD factor term' |  epsilon
    */
+
+  print_spaces(spaces);
+  fprintf(pfp, "term\n");
+  spaces += 2;
 
   int op;
   int to_match[] = {TIMES, DIV, MOD};
@@ -279,9 +335,13 @@ char *term()
   int num_to_match = sizeof(to_match)/sizeof(int);
   char  *tempvar, *tempvar2;
 
-  tempvar = factor();
+  tempvar = factor(spaces);
   while(true)
   {
+    print_spaces(spaces);
+    fprintf(pfp, "term'\n");
+    spaces += 2;
+    
     op = -1;
     for(int i = 0; i<num_to_match; i++){
       if(match(to_match[i])){
@@ -291,9 +351,11 @@ char *term()
     }
     if(op == -1)
       break;
-    
+
+    print_spaces(spaces);
+    fprintf(pfp, "%s\n", symbols[op]);
     advance();
-    tempvar2 = factor();
+    tempvar2 = factor(spaces);
     printf("    %s = %s %s %s\n", tempvar, tempvar, symbols[op], tempvar2);
     if (op == 0){
       fprintf(fp, "    imul %s, %s\n", reg_name(tempvar), reg_name(tempvar2));
@@ -315,8 +377,13 @@ char *term()
   return tempvar;
 }
 
-char *factor()
+char *factor(int spaces)
 {
+  
+  print_spaces(spaces);
+  fprintf(pfp, "factor\n");
+  spaces += 2;
+  
   char *tempvar = NULL;
 
   if(match(NUM) || match(ID))
@@ -332,14 +399,21 @@ char *factor()
 
     printf("    %s = %.*s\n", tempvar = newname(), yyleng, yytext );
     fprintf(fp, "    mov %s, %.*s\n", reg_name(tempvar), yyleng, yytext);
+    print_spaces(spaces);
+    fprintf(pfp, " %.*s\n", yyleng, yytext);
     advance();
   }
   else if( match(LP) )
   {
+    print_spaces(spaces);
+    fprintf(pfp, "(\n");
     advance();
-    tempvar = expression();
-    if( match(RP) )
+    tempvar = expression(spaces);
+    if( match(RP) ){
+      print_spaces(spaces);
+      fprintf(pfp, ")\n");
       advance();
+    }
     else
       fprintf(stderr, "%d: Mismatched parenthesis\n", yylineno );
   }

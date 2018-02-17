@@ -3,4 +3,6 @@
 #include <stdio.h>
 
 FILE *fp;
+FILE *lfp;
+FILE *pfp;
 #endif

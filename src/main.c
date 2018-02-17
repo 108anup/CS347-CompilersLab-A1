@@ -23,6 +23,8 @@ void epilog(void)
 int main (void)
 {
   fp = fopen("out.s", "w");
+  lfp = fopen("lex.txt", "w");
+  pfp = fopen("parse.txt", "w");
   header();
   prolog();
 	statements();

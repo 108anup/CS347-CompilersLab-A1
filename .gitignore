@@ -5,3 +5,5 @@ build/
 bin/
 deps/
 out.s
+parse.txt
+lex.txt

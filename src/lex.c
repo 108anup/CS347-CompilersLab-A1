@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#include <main.h>
 
 char* yytext = ""; /* Lexeme (not '\0' terminated). */
 int yyleng   = 0;  /* Lexeme length. */
@@ -124,6 +125,7 @@ int match(int token){
   if(Lookahead == -1){
     prevLookahead = Lookahead;
     Lookahead = lex();
+    fprintf(lfp, "%.*s %d\n", yyleng, yytext, Lookahead);
   }
   
   return token == Lookahead;
@@ -135,6 +137,8 @@ void advance(void){
 
   prevLookahead = Lookahead;
   Lookahead = lex();
+  fprintf(lfp, "%.*s %d\n", yyleng, yytext, Lookahead);
+
 }
 
 void goback(void){
